@@ -141,17 +141,23 @@ function sendPushbulletNotification($temp, $deviceid, $apikey)
 }
 
 /**
- * Gets the local IP address (hopefully)
+ * Gets the local IP address of all broadcasting interfaces
  * works with German console language
  * @todo Implement independent from language
- * @param $interface The network interface
-*/
-function getServerAddress($interface) 
+ */
+function getServerAddress() 
 {
-    // Parse the result of ifconfig to get the ip address
-    $ifconfig = shell_exec('/sbin/ifconfig ' . $interface);
-    preg_match('/inet [A-Za-z]*?:([\d\.]+)/', $ifconfig, $match);
-    return isset($match[1]) ? $match[1] : '';
+    // Parse the result of ifconfig
+    $ifconfig = shell_exec('/sbin/ifconfig');
+    preg_match_all('/inet [A-Za-z]*?:([\d\.]+) *Bcast/', $ifconfig, $match);
+	if (isset($match[1][0])) {
+		asort($match[1]);
+		$ipaddr = implode(', ', $match[1]);
+	}
+	else {
+		$ipaddr = 'n.a.';
+	}
+    return $ipaddr;
 }
 
 /**
@@ -173,9 +179,9 @@ function createNotificationText($temp)
 		$message .= "Hostname: " . gethostname() . "\r\n";
 	}
 	
-	// Add (optional) IP address
+	// Add (optional) IP address(es)
 	if ($notifiactionConfig['show_ip_address']) {
-		$message .= "IP Address: " . getServerAddress('eth0') . "\r\n";
+		$message .= "IP Address: " . getServerAddress() . "\r\n";
 	}
 	
 	return $message;
