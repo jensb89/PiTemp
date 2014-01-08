@@ -8,3 +8,7 @@ local.config.php
 .build*
 .settings
 .project
+
+# NetBeans
+/nbproject/private/
+/unittests/

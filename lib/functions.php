@@ -11,7 +11,7 @@ function getConfig()
 		$localConfig = include dirname(__FILE__) . '/../local.config.php';
 		$config = array_merge($config, $localConfig);
 	}
-	
+
 	return $config;
 }
 
@@ -25,7 +25,7 @@ function average($values) {
 		$total += $temperature;
 		$count++;
 	}
-	
+
 	return number_format(round($total / $count, 1), 1);
 }
 
@@ -58,7 +58,7 @@ function getMax($values) {
 }
 
 /**
- * Sends a notification email to the email address defined 
+ * Sends a notification email to the email address defined
  * in the configuration file.
  * If no email address is defined, this method files silently.
  * @param $temp The measured temperature
@@ -70,18 +70,18 @@ function sendEmailNotification($temp, $addresses = array())
 	$subject = "PiTemp Notification";
 	$message = createNotificationText($temp);
 	$headers = "From: PiTemp <notification@pitemp.local> \r\n";
-	
+
 	// Send the mail!
 	mail($to, $subject, $message, $headers);
 }
 
 /**
- * Sends a notification over pushover.net to the user 
- * that is defined in the configuration file. 
+ * Sends a notification over pushover.net to the user
+ * that is defined in the configuration file.
  * This method uses a small script on our server to "hide" our
- * application key. 
- * The script used on our server is also available on github if you 
- * want to review it. 
+ * application key.
+ * The script used on our server is also available on github if you
+ * want to review it.
  * @todo Add Github URL to server script
  * @param $temp The measured temperature
  * @param $userKey The Pushover User key.
@@ -91,28 +91,28 @@ function sendPushoverNotification($temp, $userKey)
 	// Get the url to the PiTemp Server
 	$config = getConfig();
 	$pitempServer = $config['pi_temp_server'];
-	
+
 	// Initialize cURL for the request
 	$curl = curl_init();
-	
+
 	// Set the options
 	curl_setopt_array($curl, array(
 		CURLOPT_RETURNTRANSFER => 1,
 		CURLOPT_URL => $pitempServer . "?temp=" . $temp . "&userkey=" . $userKey
 	));
-	
+
 	// Send the request
 	$response = curl_exec($curl);
-	
+
 	// @todo Add some sort of log to log failed attempts.
-	
+
 	// Close the request
 	curl_close($curl);
 }
 
 /**
  * Sends a notification via pushbullet.com to the device
- * that is defined in the configuration file. 
+ * that is defined in the configuration file.
  * @param $temp The measured temperature
  * @param $deviceid The Pushbullet device ID.
  * @param $apikey The Pushbullet API key.
@@ -124,9 +124,9 @@ function sendPushbulletNotification($temp, $deviceid, $apikey)
                     'device_id' => $deviceid,
                     'type' => 'note',
                     'title' => 'PiTemp notification',
-                    'body' => createNotificationText($temp) 
+                    'body' => createNotificationText($temp)
 	);
-					
+
 	$post_data_string = http_build_query($post_data);
 
 	$ch = curl_init('https://www.pushbullet.com/api/pushes');
@@ -145,44 +145,44 @@ function sendPushbulletNotification($temp, $deviceid, $apikey)
  * works with German console language
  * @todo Implement independent from language
  */
-function getServerAddress() 
+function getServerAddress()
 {
-    // Parse the result of ifconfig
-    $ifconfig = shell_exec('/sbin/ifconfig');
-    preg_match_all('/inet [A-Za-z]*?:([\d\.]+) *Bcast/', $ifconfig, $match);
-	if (isset($match[1][0])) {
-		asort($match[1]);
-		$ipaddr = implode(', ', $match[1]);
+    // Get IPs from hostname
+    $ipList = trim(shell_exec('/bin/hostname -I'));
+	if ( $ipList ) {
+		$ipArr = explode(' ', $ipList);
+		asort($ipArr);
+		$ipList = implode(', ', $ipArr);
 	}
 	else {
-		$ipaddr = 'n.a.';
+		$ipList = 'n.a.';
 	}
-    return $ipaddr;
+    return $ipList;
 }
 
 /**
  * Creates the notification text
- * @param float $temp The temperature in degree C. 
+ * @param float $temp The temperature in degree C.
  */
 function createNotificationText($temp)
 {
 	$config = getConfig();
 	$notifiactionConfig = $config['notification'];
-	
+
 	$message = "Your Raspberry Pi's temperature raised above your defined maximum temperature. \r\n\r\n";
-	
+
 	// Add Temp
 	$message .= "Current temperature: " . $temp . "C\r\n";
-	
+
 	// Add (optional) hostname
 	if ($notifiactionConfig['show_hostname']) {
 		$message .= "Hostname: " . gethostname() . "\r\n";
 	}
-	
+
 	// Add (optional) IP address(es)
 	if ($notifiactionConfig['show_ip_address']) {
 		$message .= "IP Address: " . getServerAddress() . "\r\n";
 	}
-	
+
 	return $message;
 }
