@@ -1,6 +1,32 @@
 <?php
 
 /**
+ * Merge array including inline ones a override an item
+ * of the previous array with corresponding item of latter one.
+ * The last array in the input list has the highest priority.
+ *
+ * @param array   $arrays	List of arrays to merge
+ * @return array  Merged array
+ */
+function array_merge_deep($arrays) {
+	$result = array();
+	foreach ($arrays as $array) {
+		foreach ($array as $key => $value) {
+			// Recurse if both values are arrays
+			if (isset($result[$key])
+			&& is_array($result[$key]) && is_array($value)) {
+				$result[$key] = array_merge_deep(array($result[$key], $value));
+			}
+			// Override previous value with latter one
+			else {
+				$result[$key] = $value;
+			}
+		}
+	}
+	return $result;
+}
+
+/**
  * Merges the application and the local config and returns it.
  */
 function getConfig()
@@ -9,7 +35,7 @@ function getConfig()
 	if (file_exists(dirname(__FILE__) . '/../local.config.php')) {
 		// Load the local config an merge
 		$localConfig = include dirname(__FILE__) . '/../local.config.php';
-		$config = array_merge($config, $localConfig);
+		$config = array_merge_deep(array($config, $localConfig));
 	}
 
 	return $config;

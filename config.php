@@ -46,7 +46,7 @@ return  array(
 		 * when the temperature is raised too high.
 		 */
 		'email_addresses' => array(
-			'email@you.com',
+			'email@you.com'
 		),
 
 		/**
@@ -65,7 +65,7 @@ return  array(
 		/**
 		 * Enable notifications with Pushbullet (Android only).
 		 * Take a look at https://www.pushbullet.com if you don't know that service.
-		 * You just need to download their application and signup. 
+		 * You just need to download their application and signup.
 		 */
 		'enable_pushbullet' => false,
 
