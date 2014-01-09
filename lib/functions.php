@@ -61,13 +61,24 @@ function getMax($values) {
  * Sends a notification email to the email address defined
  * in the configuration file.
  * If no email address is defined, this method files silently.
+ * If displaying hostname is enabled in the configuration file,
+ * the hostname is appended to the subject.
  * @param $temp The measured temperature
- * @param $addresses The addresses you want to send an email to.
  */
-function sendEmailNotification($temp, $addresses = array())
+function sendEmailNotification($temp)
 {
-	$to = join(",", $addresses);
+	$config = getConfig();
+	$notifiactionConfig = $config['notification'];
+
+	// Cancel if emailing is disabled
+	if (!$notifiactionConfig['enable_email']) return;
+
+	// Put hostname into subject if enabled
 	$subject = "PiTemp Notification";
+	if ($notifiactionConfig['show_hostname']) {
+		$subject .= " - ".gethostname();
+	}
+	$to = join(",", $notifiactionConfig['email_addresses']);
 	$message = createNotificationText($temp);
 	$headers = "From: PiTemp <notification@pitemp.local> \r\n";
 
@@ -142,13 +153,11 @@ function sendPushbulletNotification($temp, $deviceid, $apikey)
 
 /**
  * Gets the local IP address of all broadcasting interfaces
- * works with German console language
- * @todo Implement independent from language
  */
 function getServerAddress()
 {
-    // Get IPs from hostname
-    $ipList = trim(shell_exec('/bin/hostname -I'));
+	// Get IPs from hostname
+	$ipList = trim(shell_exec('/bin/hostname -I'));
 	if ( $ipList ) {
 		$ipArr = explode(' ', $ipList);
 		asort($ipArr);
@@ -157,7 +166,7 @@ function getServerAddress()
 	else {
 		$ipList = 'n.a.';
 	}
-    return $ipList;
+	return $ipList;
 }
 
 /**
@@ -172,7 +181,7 @@ function createNotificationText($temp)
 	$message = "Your Raspberry Pi's temperature raised above your defined maximum temperature. \r\n\r\n";
 
 	// Add Temp
-	$message .= "Current temperature: " . $temp . "C\r\n";
+	$message .= "Current temperature: " . ROUND($temp, 1) . " °C\r\n";
 
 	// Add (optional) hostname
 	if ($notifiactionConfig['show_hostname']) {

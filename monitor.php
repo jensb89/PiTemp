@@ -21,12 +21,9 @@ $config = getConfig();
 $notificationConfig = $config['notification'];
 $maxTemp = $notificationConfig['max_temp'];
 
-if ((int)$curTemp >= $maxTemp) {
-	// Temp is too high! Send notification!
-	if ($notificationConfig['enable_email']) {
-		$addresses = $notificationConfig['email_addresses'];
-		sendEmailNotification($curTemp, $addresses);
-	}
+// If temp is too high, send notification
+if ((float)$curTemp >= (float)$maxTemp) {
+	sendEmailNotification($curTemp);
 
 	if ($notificationConfig['enable_pushover']) {
 		$userkey = $notificationConfig['pushover_userkey'];
