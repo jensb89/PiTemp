@@ -4,7 +4,7 @@ import os
 
 
 def update_temp(date,temp):
-        py = plotly.plotly(username='USER', key='KEY')
+        py = plotly.plotly(username_or_email='USER', key='KEY')
         r =  py.plot(date,temp,
         filename='RPiTempCont',
         fileopt='extend',
